@@ -14,7 +14,7 @@ public class CompanyTCPProxy implements Company{
     }
     @Override
     public Iterator<Employee> iterator() {
-        return null;
+        throw new UnsupportedOperationException("Unimplemented method 'iterator'");
     }
 
     @Override

@@ -22,85 +22,66 @@ public class CompanyProtocol implements Protocol {
     public Response getResponse(Request req) {
         String type = req.requestType();
         String data = req.requestData();
-        Response resp = switch (type) {
-            case "addEmployee" -> addEmployee(data);
-            case "getDepartmentBudget" -> getDepartmentBudget(data);
-            case "getDepartments" -> getDepartments();
-            case "getEmployee" -> getEmployee(data);
-            case "getManagersWithMostFactor" -> getManagersWithMostFactor();
-            case "removeEmployee" -> removeEmployee(data);
-            default -> new Response(ResponseCode.WRONG_TYPE, "The type doesn't exist");
-        };
-        return resp;
-    }
-
-    private Response removeEmployee(String data) {
-        Response resp = null;
-        Long id = Long.parseLong(data);
-        try {
-            company.removeEmployee(id);
-            resp = new Response(ResponseCode.OK, "");
-        } catch (NoSuchElementException e) {
-            resp = new Response(ResponseCode.WRONG_DATA, "Employee doesn't exist with this id");
-        }
-        return resp;
-    }
-
-    private Response getManagersWithMostFactor() {
         Response resp = null;
         try {
-            Manager[] managers = company.getManagersWithMostFactor();
-            String[] managersStrings = Arrays.stream(managers).map(Manager::toString).toArray(String[]::new);
-            JSONArray managersJSON = new JSONArray(managersStrings);
-            resp = new Response(ResponseCode.OK, managersJSON.toString());
-        } catch (JSONException e) {
-            resp = new Response(ResponseCode.WRONG_DATA, "There's no managers in the company");
-        }
-        return resp;
-    }
-
-    private Response getEmployee(String data) {
-        Long id = Long.parseLong(data);
-        Employee empl = company.getEmployee(id);
-        return empl != null
-                ? new Response(ResponseCode.OK, empl.toString())
-                : new Response(ResponseCode.WRONG_DATA, "Employee doesn't exist with this id");
-    }
-
-    private Response getDepartments() {
-        Response resp = null;
-        try {
-            String[] departments = company.getDepartments();
-            JSONArray jsonArray = new JSONArray(departments);
-            resp = new Response(ResponseCode.OK, jsonArray.toString());
-            
-        } catch (NoSuchElementException e) {
-            resp = new Response(ResponseCode.WRONG_DATA, "There's no departments in the company");
-        }
-        return resp;
-    }
-
-    private Response getDepartmentBudget(String data) {
-        Response resp = null;
-        try {
-            int budget = company.getDepartmentBudget(data);
-            resp =  new Response(ResponseCode.OK, String.valueOf(budget));
+            resp = switch (type) {
+                case "addEmployee" -> addEmployee(data);
+                case "getDepartmentBudget" -> getDepartmentBudget(data);
+                case "getDepartments" -> getDepartments();
+                case "getEmployee" -> getEmployee(data);
+                case "getManagersWithMostFactor" -> getManagersWithMostFactor();
+                case "removeEmployee" -> removeEmployee(data);
+                default -> new Response(ResponseCode.WRONG_TYPE, "The type doesn't exist");
+            };
         } catch (Exception e) {
-            resp =  new Response(ResponseCode.WRONG_DATA, "There's no department budget in the company");
+            resp = new Response(ResponseCode.WRONG_DATA, e.getMessage());
         }
         return resp;
     }
 
-    private Response addEmployee(String data) {
-        Response resp = null;
-        Employee empl = Employee.getEmployeeFromJSON(data);
-        try {
-            company.addEmployee(empl);
-            resp = new Response(ResponseCode.OK, "");
-        } catch (IllegalStateException e) {
-            resp = new Response(ResponseCode.WRONG_DATA, "Employee with this id already exist in the company");
+    Response getOkResponse(String responseData) {
+        return new Response(ResponseCode.OK, responseData);
+    }
+
+    Response removeEmployee(String requestData) {
+        long id = Long.parseLong(requestData);
+        Employee empl = company.removeEmployee(id);
+        return getOkResponse(empl.toString());
+    }
+
+    Response getManagersWithMostFactor(String requestData) {
+        Manager[] managers = company.getManagersWithMostFactor();
+        JSONArray jsonArray = new JSONArray(Arrays.stream(managers).map(Manager::toString).toList());
+        return getOkResponse(jsonArray.toString());
+    }
+
+    Response getEmployee(String requestData) {
+        long id = Long.parseLong(requestData);
+        Employee empl = company.getEmployee(id);
+        if (empl == null) {
+            throw new NoSuchElementException(String.format("Employee %d not found", id));
         }
-        return resp;
+        return getOkResponse(empl.toString());
+    }
+
+    Response getDepartments(String requestData) {
+        String[] departments = company.getDepartments();
+        JSONArray jsonArray = new JSONArray(departments);
+        return getOkResponse(jsonArray.toString());
+    }
+
+    Response getDepartmentBudget(String requestData) {
+        int budget = company.getDepartmentBudget(requestData);
+        return getOkResponse(budget + "");
+    }
+
+    Response getEmployee(String requestData) {
+        long id = Long.parseLong(requestData);
+        Employee empl = company.getEmployee(id);
+        if (empl == null) {
+            throw new NoSuchElementException(String.format("Employee %d not found", id));
+        }
+        return getOkResponse(empl.toString());
     }
 
 }
