@@ -26,18 +26,8 @@ public class CompanyProtocol implements Protocol {
         Response resp = null;
         try {
             Method method = this.getClass().getDeclaredMethod(type, String.class);
-            resp =(Response) method.invoke(this, data);
-        //     resp = switch (type) {
-        //         case "addEmployee" -> addEmployee(data);
-        //         case "getDepartmentBudget" -> getDepartmentBudget(data);
-        //         case "getDepartments" -> getDepartments(data);
-        //         case "getEmployee" -> getEmployee(data);
-        //         case "getManagersWithMostFactor" -> getManagersWithMostFactor(data);
-        //         case "removeEmployee" -> removeEmployee(data);
-        //         default -> new Response(ResponseCode.WRONG_TYPE, "The type doesn't exist");
-        //     };
+            resp = (Response) method.invoke(this, data);
         } catch (NoSuchMethodException e) {
-            // resp = new Response(ResponseCode.WRONG_DATA, e.getMessage());
             resp = new Response(ResponseCode.WRONG_TYPE, "The type doesn't exist");
         } catch (IllegalAccessException | InvocationTargetException e) {
             resp = new Response(ResponseCode.WRONG_DATA, e.getMessage());
