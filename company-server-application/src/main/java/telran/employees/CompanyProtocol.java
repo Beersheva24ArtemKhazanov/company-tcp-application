@@ -1,10 +1,11 @@
 package telran.employees;
 
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.NoSuchElementException;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 
 import telran.net.Protocol;
 import telran.net.Request;
@@ -24,16 +25,21 @@ public class CompanyProtocol implements Protocol {
         String data = req.requestData();
         Response resp = null;
         try {
-            resp = switch (type) {
-                case "addEmployee" -> addEmployee(data);
-                case "getDepartmentBudget" -> getDepartmentBudget(data);
-                case "getDepartments" -> getDepartments();
-                case "getEmployee" -> getEmployee(data);
-                case "getManagersWithMostFactor" -> getManagersWithMostFactor();
-                case "removeEmployee" -> removeEmployee(data);
-                default -> new Response(ResponseCode.WRONG_TYPE, "The type doesn't exist");
-            };
-        } catch (Exception e) {
+            Method method = this.getClass().getDeclaredMethod(type, String.class);
+            resp =(Response) method.invoke(this, data);
+        //     resp = switch (type) {
+        //         case "addEmployee" -> addEmployee(data);
+        //         case "getDepartmentBudget" -> getDepartmentBudget(data);
+        //         case "getDepartments" -> getDepartments(data);
+        //         case "getEmployee" -> getEmployee(data);
+        //         case "getManagersWithMostFactor" -> getManagersWithMostFactor(data);
+        //         case "removeEmployee" -> removeEmployee(data);
+        //         default -> new Response(ResponseCode.WRONG_TYPE, "The type doesn't exist");
+        //     };
+        } catch (NoSuchMethodException e) {
+            // resp = new Response(ResponseCode.WRONG_DATA, e.getMessage());
+            resp = new Response(ResponseCode.WRONG_TYPE, "The type doesn't exist");
+        } catch (IllegalAccessException | InvocationTargetException e) {
             resp = new Response(ResponseCode.WRONG_DATA, e.getMessage());
         }
         return resp;
@@ -55,13 +61,10 @@ public class CompanyProtocol implements Protocol {
         return getOkResponse(jsonArray.toString());
     }
 
-    Response getEmployee(String requestData) {
-        long id = Long.parseLong(requestData);
-        Employee empl = company.getEmployee(id);
-        if (empl == null) {
-            throw new NoSuchElementException(String.format("Employee %d not found", id));
-        }
-        return getOkResponse(empl.toString());
+    Response addEmployee(String requestData) {
+        Employee empl = Employee.getEmployeeFromJSON(requestData);
+        company.addEmployee(empl);
+        return getOkResponse("");
     }
 
     Response getDepartments(String requestData) {
