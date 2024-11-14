@@ -25,13 +25,18 @@ public class CompanyProtocol implements Protocol {
         String data = req.requestData();
         Response resp = null;
         try {
-            Method method = this.getClass().getDeclaredMethod(type, String.class);
+            Method method = CompanyProtocol.class.getDeclaredMethod(type, String.class);
+            method.setAccessible(true);
             resp = (Response) method.invoke(this, data);
         } catch (NoSuchMethodException e) {
             resp = new Response(ResponseCode.WRONG_TYPE, "The type doesn't exist");
-        } catch (IllegalAccessException | InvocationTargetException e) {
-            resp = new Response(ResponseCode.WRONG_DATA, e.getMessage());
-        }
+        } catch (InvocationTargetException e) {
+            Throwable causeExc = e.getCause();
+            String message = causeExc == null ? e.getMessage() : causeExc.getMessage();
+            resp = new Response(ResponseCode.WRONG_DATA, message);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        } 
         return resp;
     }
 
