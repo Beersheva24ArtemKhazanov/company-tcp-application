@@ -6,7 +6,6 @@ import java.util.Iterator;
 import org.json.JSONArray;
 
 import telran.net.NetworkClient;
-import telran.net.TCPClient;
 
 public class CompanyNetProxy implements Company{
     NetworkClient netClient;

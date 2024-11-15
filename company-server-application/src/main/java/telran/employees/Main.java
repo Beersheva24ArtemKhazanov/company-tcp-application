@@ -9,9 +9,12 @@ public class Main {
         Company company = new CompanyImpl();
         Protocol protocol = new CompanyProtocol(company);
         TCPServer server = new TCPServer(protocol, PORT);
+        Thread threadServer = new Thread(server);
+        SaverToFile saver = new SaverToFile(company);
         if (company instanceof Persistable persistable) {
             persistable.restoreFromFile("employees.data");
         }
-        server.run();
+        threadServer.start();
+        saver.start();
     }
 }
